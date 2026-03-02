@@ -18,6 +18,7 @@ import CreateAgent from "./features/agents/CreateAgent";
 import CreateProperty from "./features/property/CreatePorperty";
 import PropertyDetail from "./features/property/PropertyDetail";
 import CreateLeads from "./features/leads/CreateLeads";
+import AssignedLeads from "./features/leads/AssignedLeads";
 
 const AppRoutes = () => {
   return (
@@ -49,7 +50,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={["agent"]} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/agent" element={<AgentDashboard />} />
-          <Route path="/agent/leads" element={<LeadPage/>}/>
+          <Route path="/agent/leads" element={<AssignedLeads/>}/>
           <Route path="/agent/properties" element={<PropertyPage/>}/>
         </Route>
       </Route>

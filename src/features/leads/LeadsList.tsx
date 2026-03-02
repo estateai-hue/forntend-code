@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const LeadsList = () => {
   const { token } = useAuth();
@@ -11,6 +12,7 @@ const LeadsList = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+ 
   const navigate = useNavigate();
 
   const fetchLeads = async () => {
@@ -28,7 +30,7 @@ const LeadsList = () => {
         }
       );
       console.log("leads List", res.data);
-      setLeads(res.data.leads || []); 
+      setLeads(res.data.leads); 
       setTotalPages(res.data.pagination?.pages || 1);
     } catch (error) {
       console.log(error);
@@ -43,12 +45,38 @@ const LeadsList = () => {
     return () => clearTimeout(delay);
   }, [status, search, page]);
 
+
+  const handleDelete = async (leadId: string)=>{
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This lead will be deleted",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor:"#d33"
+    });
+
+    if(!result.isConfirmed) return;
+    await axios.delete(`http://localhost:8080/api/leads/${leadId}`, 
+      {
+        headers: {Authorization: `Bearer ${token}`}
+      }
+    );
+    setLeads(prev => prev.filter(l=> l._id !== leadId));
+    Swal.fire("Deleted!", "Lead deleted Succesfully", "success");
+  }
+
   return (
-    <div className="p-8">
-
-      <h1 className="text-2xl font-bold mb-6">Leads List</h1>
-      <button type="button" onClick={()=> navigate("/superadmin/create-leads")}>Create Leads</button>
-
+    <div className="p-8 bg-white rounded-2xl">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold mb-6">Leads List</h1>
+        <button type="button" 
+        onClick={()=> navigate("/superadmin/create-leads")}
+        className="bg-indigo-600 text-white border rounded-2xl px-4 py-2"
+        >
+         + Create Leads
+        </button>
+      </div>
+      
       {/* Filters */}
       <div className="flex gap-4 mb-6">
 
@@ -90,6 +118,7 @@ const LeadsList = () => {
               <th className="px-4 py-3 text-left">Phone</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Assigned To</th>
+              <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -101,9 +130,14 @@ const LeadsList = () => {
                   <td className="px-4 py-3">{lead.clientPhone}</td>
                   <td className="px-4 py-3 capitalize">
                     {lead.status}
+                    
                   </td>
                   <td className="px-4 py-3">
                     {lead.assignedTo?.name || "-"}
+                  </td>
+                  <td className="px-4 py-3 gap-2">
+                    <button onClick={()=> handleDelete(lead._id)}>Delete</button>
+                    <button onClick={() => navigate(`/leads/edit/${lead._id}`)}>Edit</button>
                   </td>
                 </tr>
               ))
